@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import { Fragment, useState, useMemo, useEffect } from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-function App() {
+import CssBaseline from '@material-ui/core/CssBaseline';
+
+import Layout from './components/Layout/Layout';
+import Home from './components/Layout/Home';
+import Contacts from './Contacts';
+import Login from './Login';
+import { UserContext } from './UserContext';
+import { callApi } from './utils';
+
+export default function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const user = await callApi('/users/me', 'GET');
+      if (user.id) {
+        setUser(user);
+      }
+    };
+    getUser();
+  }, []);
+
+  const value = useMemo(() => ({ user, setUser }), [user, setUser]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Fragment>
+      <CssBaseline />
+      <Router>
+        <UserContext.Provider value={value}>
+          <Layout>
+            <Switch>
+              <Route path='/' exact render={() => <Home />} />
+              <Route path='/contacts' render={() => <Contacts />} />
+              <Route path='/login' render={() => <Login />} />
+            </Switch>
+          </Layout>
+        </UserContext.Provider>
+      </Router>
+    </Fragment>
   );
 }
-
-export default App;
